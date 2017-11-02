@@ -152,21 +152,25 @@ def edit_bar(context):
     # Don't show to non-admins, and don't pretend that /search/ is editable.
     if not request.user.is_staff or request.path == '/search/':
         return {'show': False}
-    if 'object' in context:
-        try:
-            obj = context['object']
-            edit_url = reverse('admin:{}_{}_change'.format(obj._meta.app_label, obj._meta.model_name), args=[obj.pk])
-            return {
-                'edit_url': edit_url,
-                'model_name': obj._meta.verbose_name,
-                'show': True,
-            }
-        except NoReverseMatch:
+    obj = context.get('object')
+    if obj:
+        if request.user.has_perm('{}.change_{}'.format(obj._meta.app_label, obj._meta.model_name)):
+            try:
+                edit_url = reverse('admin:{}_{}_change'.format(obj._meta.app_label, obj._meta.model_name), args=[obj.pk])
+                return {
+                    'edit_url': edit_url,
+                    'model_name': obj._meta.verbose_name,
+                    'show': True,
+                }
+            except NoReverseMatch:
+                return {'show': False}
+        else:
             return {'show': False}
 
-    elif 'pages' in context and context['pages'].current:
+    elif 'pages' in context and context['pages'].current and request.user.has_perm('pages.change_page'):
         return {
             'edit_url': reverse('admin:pages_page_change', args=[context['pages'].current.pk]),
             'model_name': 'page',
             'show': True,
         }
+    return {'show': False}
