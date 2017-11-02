@@ -5,6 +5,7 @@ import CommonMark
 import jinja2
 from cms.apps.pages.templatetags.pages import _navigation_entries
 from django.conf import settings
+from django.core.urlresolvers import NoReverseMatch, reverse
 from django.utils.safestring import mark_safe
 from django_jinja import library
 from sorl.thumbnail import get_thumbnail
