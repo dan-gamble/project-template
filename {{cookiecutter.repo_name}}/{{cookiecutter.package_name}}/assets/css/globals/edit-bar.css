@@ -1,4 +1,14 @@
-.ed-EditBar {
+/*
+|--------------------------------------------------------------------------
+| Edit bar
+|--------------------------------------------------------------------------
+| A global 'edit this thing' bar shown to logged-in admin users.
+|
+| @namespace: pg-
+|
+*/
+
+.pg-EditBar {
   position: fixed;
   right: 0;
   bottom: 0;
@@ -8,7 +18,7 @@
   color: #fff;
 }
 
-.ed-EditBar_Link {
+.pg-EditBar_Link {
   display: block;
 
   padding: 0.5vr var(--Grid_Inside);
