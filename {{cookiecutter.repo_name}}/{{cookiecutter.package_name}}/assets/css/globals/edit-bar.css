@@ -1,0 +1,20 @@
+.ed-EditBar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+
+  background-color: var(--Color_Body);
+  color: #fff;
+}
+
+.ed-EditBar_Link {
+  display: block;
+
+  padding: 0.5vr var(--Grid_Inside);
+
+  color: inherit;
+
+  &::before {
+    font-awesome: pencil;
+  }
+}

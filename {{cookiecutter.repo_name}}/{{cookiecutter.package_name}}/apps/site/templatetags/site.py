@@ -141,3 +141,31 @@ def md(value, inline=True):
 # @library.global_function
 # def get_footer_content():
 #     return Footer.objects.first()
+
+
+@library.global_function
+@library.render_with('base/_edit_bar.html')
+@jinja2.contextfunction
+def edit_bar(context):
+    request = context['request']
+    # Don't show to non-admins, and don't pretend that /search/ is editable.
+    if not request.user.is_staff or request.path == '/search/':
+        return {'show': False}
+    if 'object' in context:
+        try:
+            obj = context['object']
+            edit_url = reverse('admin:{}_{}_change'.format(obj._meta.app_label, obj._meta.model_name), args=[obj.pk])
+            return {
+                'edit_url': edit_url,
+                'model_name': obj._meta.verbose_name,
+                'show': True,
+            }
+        except NoReverseMatch:
+            return {'show': False}
+
+    elif 'pages' in context and context['pages'].current:
+        return {
+            'edit_url': reverse('admin:pages_page_change', args=[context['pages'].current.pk]),
+            'model_name': 'page',
+            'show': True,
+        }
