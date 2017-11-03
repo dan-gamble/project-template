@@ -1,5 +1,7 @@
+import hashlib
 import json
 import os
+import urllib.parse
 
 import CommonMark
 import jinja2
@@ -148,29 +150,59 @@ def md(value, inline=True):
 @library.render_with('base/_edit_bar.html')
 @jinja2.contextfunction
 def edit_bar(context):
+    context = dict(context)
     request = context['request']
+
     # Don't show to non-admins, and don't pretend that /search/ is editable.
     if not request.user.is_staff or request.path == '/search/':
-        return {'show': False}
+        context['show'] = False
+        return context
+
     obj = context.get('object')
+
     if obj:
-        if request.user.has_perm('{}.change_{}'.format(obj._meta.app_label, obj._meta.model_name)):
+        app_label = obj._meta.app_label
+        model_name = obj._meta.model_name
+
+        if request.user.has_perm(f'{app_label}.change_{model_name}'):
             try:
-                edit_url = reverse('admin:{}_{}_change'.format(obj._meta.app_label, obj._meta.model_name), args=[obj.pk])
-                return {
+                add_url = reverse(f'admin:{app_label}_{model_name}_add')
+                edit_url = reverse(f'admin:{app_label}_{model_name}_change', args=[obj.pk])
+
+                context.update({
+                    'add_url': add_url,
                     'edit_url': edit_url,
                     'model_name': obj._meta.verbose_name,
                     'show': True,
-                }
+                })
+                return context
+
             except NoReverseMatch:
-                return {'show': False}
+                context['show'] = False
+                return context
         else:
-            return {'show': False}
+            context['show'] = False
+            return context
 
     elif 'pages' in context and context['pages'].current and request.user.has_perm('pages.change_page'):
-        return {
+        context.update({
+            'add_url': reverse('admin:pages_page_add'),
             'edit_url': reverse('admin:pages_page_change', args=[context['pages'].current.pk]),
             'model_name': 'page',
             'show': True,
-        }
-    return {'show': False}
+        })
+        return context
+
+    context['show'] = False
+    return context
+
+
+@library.global_function
+def gravatar_url(email, size=40):
+    return "https://www.gravatar.com/avatar/{}?{}".format(
+        hashlib.md5(email.lower().encode('utf-8')).hexdigest(),
+        urllib.parse.urlencode({
+            'd': 'mm',
+            's': str(size)
+        })
+    )
